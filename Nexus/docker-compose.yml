@@ -1,0 +1,29 @@
+version: '3.5'
+services:
+    nginx:
+        image: nginx:1.19-alpine
+        restart: unless-stopped
+        volumes:
+            - "./nginx/nexus.conf:/etc/nginx/conf.d/nexus.conf"
+            - "./nginx/certs:/etc/certificates"
+        ports:
+            - "80:80"
+            - "443:443"
+            - "5000:5000"
+        command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+        networks:
+            - nexus
+    
+    
+    nexus:
+        image: "sonatype/nexus3"
+        restart: unless-stopped
+        volumes:
+            - "./nexus:/nexus-data"
+        networks:
+            - "nexus"
+        environment:
+            - NEXUS_CONTEXT=nexus
+        user: root
+networks:
+    nexus:
